@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
-  Fish, Waves, Moon, Bot, MapPin, BookOpen, Users, User, Home as HomeIcon,
+  Fish, Waves, Moon, Bot, MapPin, BookOpen, Users, User, HomeIcon,
   Bell, ChevronRight, ChevronLeft, Wind, Droplet, Sun, Star, ArrowRight, X,
   Send, Gauge, Sunrise, Sunset, Eye, CloudRain, Thermometer, TrendingUp,
   TrendingDown, Compass, Sparkles, CloudSun, Cloud, Camera, Plus, Trash2,
   Loader2, CheckCircle2, Calendar, Ruler, Layers, Navigation, Minus,
   Heart, MessageCircle, Share2, Award, LogOut, Settings, HelpCircle, Info,
   Copy, Check, Clock, MapPinned, Activity, Zap, Edit2, MoreVertical,
-  AlertCircle, Lightbulb, TrendingUp as TrendingUpIcon
-} from 'lucide-react';
+  AlertCircle, Lightbulb, TrendingUpIcon
+} from './constants/icons';
 
 import PremiumCard from './components/PremiumCard';
 import TripDetailView from './components/TripDetailView';
@@ -26,12 +26,33 @@ import MapPage from './pages/MapPage';
 import FeedPage from './pages/FeedPage';
 import ProfilePage from './pages/ProfilePage';
 
-import { navItems, notifications, community } from './data/mockData';
-import { formatTime, getElapsedTime, calculateDistance, aiReply } from './utils/helpers';
+import { navItems, notifications, initialTrips } from './data/mockData';
+import { formatTime, getElapsedTime, calculateDistance, aiReply, calculateFishingReadiness, getReadinessLevel } from './utils/helpers';
 
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 `;
+
+// Toast notification component
+const Toast = ({ message, type = 'info', onClose }) => {
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const bgColor = {
+    error: 'bg-red-500',
+    success: 'bg-green-500',
+    info: 'bg-blue-500',
+    warning: 'bg-amber-500'
+  }[type] || 'bg-blue-500';
+
+  return (
+    <div className={`fixed bottom-32 left-1/2 transform -translate-x-1/2 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg text-sm z-50 animate-fade-in`}>
+      {message}
+    </div>
+  );
+};
 
 function NusaStrike() {
   const [activeTab, setActiveTab] = useState("home");
@@ -41,50 +62,28 @@ function NusaStrike() {
     { role: "ai", text: "Halo Kapten! Aku sudah analisa cuaca, laut, dan solunar hari ini. Ada yang ingin ditanyakan?" },
   ]);
   const [input, setInput] = useState("");
+  const [toast, setToast] = useState(null);
   
   /* ===== TRIP STATE MANAGEMENT ===== */
   const [activeTrip, setActiveTrip] = useState(null);
-  const [tripsHistory, setTripsHistory] = useState([
-    {
-      id: "trip_001",
-      name: "Trip Kepulauan Seribu",
-      date: new Date("2024-01-15"),
-      location: "Kepulauan Seribu, Jakarta",
-      startTime: new Date("2024-01-15T06:00:00"),
-      endTime: new Date("2024-01-15T14:30:00"),
-      catches: [
-        { id: "c1", fishType: "Kakap Merah", weight: 3.2, length: 45, lure: "Soft Plastic", notes: "Dapat di area batu", timestamp: new Date("2024-01-15T07:15:00"), location: { lat: -6.12, lng: 106.85 }, photo: null },
-        { id: "c2", fishType: "Tenggiri", weight: 2.8, length: 40, lure: "Metal Jig", notes: "", timestamp: new Date("2024-01-15T09:45:00"), location: { lat: -6.14, lng: 106.87 }, photo: null },
-        { id: "c3", fishType: "Kerapu", weight: 2.1, length: 35, lure: "Live Bait", notes: "Strike kuat", timestamp: new Date("2024-01-15T12:20:00"), location: { lat: -6.10, lng: 106.83 }, photo: null },
-      ],
-      timeline: [
-        { id: "tl1", type: "start", label: "Trip Dimulai", timestamp: new Date("2024-01-15T06:00:00"), data: {} },
-        { id: "tl2", type: "catch", label: "Mendapat Kakap Merah (3.2 kg)", timestamp: new Date("2024-01-15T07:15:00"), data: { fishType: "Kakap Merah", weight: 3.2 } },
-        { id: "tl3", type: "location", label: "Berpindah ke Pulau Semak Daun", timestamp: new Date("2024-01-15T08:30:00"), data: { location: "Pulau Semak Daun" } },
-        { id: "tl4", type: "lure", label: "Mengganti lure ke Metal Jig", timestamp: new Date("2024-01-15T09:00:00"), data: { lure: "Metal Jig" } },
-        { id: "tl5", type: "catch", label: "Mendapat Tenggiri (2.8 kg)", timestamp: new Date("2024-01-15T09:45:00"), data: { fishType: "Tenggiri", weight: 2.8 } },
-        { id: "tl6", type: "note", label: "Semakin ramai nelayan lain mampir", timestamp: new Date("2024-01-15T11:00:00"), data: { note: "Semakin ramai nelayan lain mampir" } },
-        { id: "tl7", type: "catch", label: "Mendapat Kerapu (2.1 kg)", timestamp: new Date("2024-01-15T12:20:00"), data: { fishType: "Kerapu", weight: 2.1 } },
-        { id: "tl8", type: "end", label: "Trip Selesai", timestamp: new Date("2024-01-15T14:30:00"), data: {} },
-      ],
-      trackingPath: [
-        { lat: -6.12, lng: 106.85, time: "06:00" },
-        { lat: -6.13, lng: 106.86, time: "07:30" },
-        { lat: -6.14, lng: 106.87, time: "09:00" },
-        { lat: -6.13, lng: 106.88, time: "11:00" },
-        { lat: -6.12, lng: 106.85, time: "14:30" },
-      ],
-      distance: 8.5,
-      status: "completed",
-    }
-  ]);
+  const [tripsHistory, setTripsHistory] = useState(initialTrips);
   const [showAddCatch, setShowAddCatch] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showTripSummary, setShowTripSummary] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState(null);
 
+  // Toast helper
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+  };
+
   /* ===== TRIP FUNCTIONS ===== */
   const startTrip = () => {
+    if (activeTrip) {
+      showToast('Trip sudah aktif! Selesaikan terlebih dahulu.', 'warning');
+      return;
+    }
+
     const now = new Date();
     const newTrip = {
       id: `trip_${Date.now()}`,
@@ -102,10 +101,25 @@ function NusaStrike() {
       status: "active",
     };
     setActiveTrip(newTrip);
+    showToast('Trip dimulai! Semoga dapat ikan banyak.', 'success');
   };
 
   const addCatchToTrip = (catchData) => {
-    if (!activeTrip) return;
+    if (!activeTrip) {
+      showToast('Mulai trip terlebih dahulu!', 'warning');
+      return;
+    }
+    
+    // Validate catch data
+    if (!catchData.fishType || !catchData.weight) {
+      showToast('Data ikan tidak lengkap!', 'error');
+      return;
+    }
+
+    if (catchData.weight <= 0) {
+      showToast('Berat ikan harus lebih dari 0 kg!', 'error');
+      return;
+    }
     
     const timestamp = new Date();
     const newCatch = {
@@ -133,10 +147,19 @@ function NusaStrike() {
 
     setActiveTrip(updatedTrip);
     setShowAddCatch(false);
+    showToast(`Berhasil mencatat ${catchData.fishType}!`, 'success');
   };
 
   const addTimelineEvent = (eventData) => {
-    if (!activeTrip) return;
+    if (!activeTrip) {
+      showToast('Mulai trip terlebih dahulu!', 'warning');
+      return;
+    }
+
+    if (!eventData.label) {
+      showToast('Deskripsi event tidak boleh kosong!', 'error');
+      return;
+    }
 
     const timestamp = new Date();
     const newEvent = {
@@ -154,19 +177,27 @@ function NusaStrike() {
 
     setActiveTrip(updatedTrip);
     setShowAddEvent(false);
+    showToast('Event berhasil ditambahkan!', 'success');
   };
 
   const finishTrip = () => {
-    if (!activeTrip) return;
+    if (!activeTrip) {
+      showToast('Tidak ada trip yang aktif!', 'warning');
+      return;
+    }
 
     const endTime = new Date();
-    const distance = calculateDistance(activeTrip.trackingPath.map(p => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) })));
+    const trackingPoints = activeTrip.trackingPath.map(p => ({
+      lat: typeof p.lat === 'number' ? p.lat : parseFloat(p.lat || 0),
+      lng: typeof p.lng === 'number' ? p.lng : parseFloat(p.lng || 0)
+    }));
+    const distance = calculateDistance(trackingPoints) || 0;
 
     const completedTrip = {
       ...activeTrip,
       endTime,
       status: "completed",
-      distance: distance || 12.5,
+      distance,
       timeline: [
         ...activeTrip.timeline,
         {
@@ -183,6 +214,7 @@ function NusaStrike() {
     setSelectedTrip(completedTrip);
     setShowTripSummary(true);
     setActiveTrip(null);
+    showToast(`Trip selesai! Tangkapan: ${completedTrip.catches.length} ikan.`, 'success');
   };
 
   const sendMsg = () => {
@@ -192,6 +224,14 @@ function NusaStrike() {
     setChat((c) => [...c, userMsg, reply]);
     setInput("");
   };
+
+  // Calculate fishing readiness
+  const fishingReadiness = calculateFishingReadiness({
+    weather: 70,
+    sea: 75,
+    solunar: 85
+  });
+  const readinessLevel = getReadinessLevel(fishingReadiness);
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -225,19 +265,27 @@ function NusaStrike() {
             setShowAddEvent={setShowAddEvent}
             setDetail={setDetail}
             setSheet={setSheet}
+            fishingReadiness={fishingReadiness}
+            readinessLevel={readinessLevel}
           />
         )}
-
 
         {activeTab === "home" && detail === "weather" && <WeatherPage onBack={() => setDetail(null)} />}
         {activeTab === "home" && detail === "sea" && <SeaPage onBack={() => setDetail(null)} />}
         {activeTab === "home" && detail === "solunar" && <SolunarPage onBack={() => setDetail(null)} />}
 
         {/* LOGBOOK TAB */}
-        {activeTab === "logbook" && <LogbookPage trips={tripsHistory} activeTrip={activeTrip} startTrip={startTrip} onSelectTrip={(trip) => {
-          setSelectedTrip(trip);
-          setDetail("tripDetail");
-        }} />}
+        {activeTab === "logbook" && (
+          <LogbookPage 
+            trips={tripsHistory} 
+            activeTrip={activeTrip} 
+            startTrip={startTrip} 
+            onSelectTrip={(trip) => {
+              setSelectedTrip(trip);
+              setDetail("tripDetail");
+            }} 
+          />
+        )}
 
         {/* MAP TAB */}
         {activeTab === "map" && <MapPage />}
@@ -335,11 +383,17 @@ function NusaStrike() {
           }} 
         />
       )}
+
+      {/* TOAST NOTIFICATIONS */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
-
-/* ===== COMPONENTS ===== */
-
 
 export default NusaStrike;
