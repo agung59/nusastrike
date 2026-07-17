@@ -1,13 +1,13 @@
 import {
-  Fish, Waves, Moon, Bot, MapPin, BookOpen, Users, User, Home as HomeIcon,
+  Fish, Waves, Moon, Bot, MapPin, BookOpen, Users, User, HomeIcon,
   Bell, ChevronRight, ChevronLeft, Wind, Droplet, Sun, Star, ArrowRight, X,
   Send, Gauge, Sunrise, Sunset, Eye, CloudRain, Thermometer, TrendingUp,
   TrendingDown, Compass, Sparkles, CloudSun, Cloud, Camera, Plus, Trash2,
   Loader2, CheckCircle2, Calendar, Ruler, Layers, Navigation, Minus,
   Heart, MessageCircle, Share2, Award, LogOut, Settings, HelpCircle, Info,
   Copy, Check, Clock, MapPinned, Activity, Zap, Edit2, MoreVertical,
-  AlertCircle, Lightbulb, TrendingUp as TrendingUpIcon
-} from 'lucide-react';
+  AlertCircle, Lightbulb, TrendingUpIcon
+} from '../constants/icons';
 
 
 /* ---------- MOCK DATA ---------- */
@@ -147,3 +147,38 @@ export const filterTabs = [
   { key: "sekitar", label: "Sekitar Saya" },
 ];
 
+// Initial trips data
+export const initialTrips = [
+  {
+    id: "trip_001",
+    name: "Trip Kepulauan Seribu",
+    date: new Date("2024-01-15"),
+    location: "Kepulauan Seribu, Jakarta",
+    startTime: new Date("2024-01-15T06:00:00"),
+    endTime: new Date("2024-01-15T14:30:00"),
+    catches: [
+      { id: "c1", fishType: "Kakap Merah", weight: 3.2, length: 45, lure: "Soft Plastic", notes: "Dapat di area batu", timestamp: new Date("2024-01-15T07:15:00"), location: { lat: -6.12, lng: 106.85 }, photo: null },
+      { id: "c2", fishType: "Tenggiri", weight: 2.8, length: 40, lure: "Metal Jig", notes: "", timestamp: new Date("2024-01-15T09:45:00"), location: { lat: -6.14, lng: 106.87 }, photo: null },
+      { id: "c3", fishType: "Kerapu", weight: 2.1, length: 35, lure: "Live Bait", notes: "Strike kuat", timestamp: new Date("2024-01-15T12:20:00"), location: { lat: -6.10, lng: 106.83 }, photo: null },
+    ],
+    timeline: [
+      { id: "tl1", type: "start", label: "Trip Dimulai", timestamp: new Date("2024-01-15T06:00:00"), data: {} },
+      { id: "tl2", type: "catch", label: "Mendapat Kakap Merah (3.2 kg)", timestamp: new Date("2024-01-15T07:15:00"), data: { fishType: "Kakap Merah", weight: 3.2 } },
+      { id: "tl3", type: "location", label: "Berpindah ke Pulau Semak Daun", timestamp: new Date("2024-01-15T08:30:00"), data: { location: "Pulau Semak Daun" } },
+      { id: "tl4", type: "lure", label: "Mengganti lure ke Metal Jig", timestamp: new Date("2024-01-15T09:00:00"), data: { lure: "Metal Jig" } },
+      { id: "tl5", type: "catch", label: "Mendapat Tenggiri (2.8 kg)", timestamp: new Date("2024-01-15T09:45:00"), data: { fishType: "Tenggiri", weight: 2.8 } },
+      { id: "tl6", type: "note", label: "Semakin ramai nelayan lain mampir", timestamp: new Date("2024-01-15T11:00:00"), data: { note: "Semakin ramai nelayan lain mampir" } },
+      { id: "tl7", type: "catch", label: "Mendapat Kerapu (2.1 kg)", timestamp: new Date("2024-01-15T12:20:00"), data: { fishType: "Kerapu", weight: 2.1 } },
+      { id: "tl8", type: "end", label: "Trip Selesai", timestamp: new Date("2024-01-15T14:30:00"), data: {} },
+    ],
+    trackingPath: [
+      { lat: -6.12, lng: 106.85, time: "06:00" },
+      { lat: -6.13, lng: 106.86, time: "07:30" },
+      { lat: -6.14, lng: 106.87, time: "09:00" },
+      { lat: -6.13, lng: 106.88, time: "11:00" },
+      { lat: -6.12, lng: 106.85, time: "14:30" },
+    ],
+    distance: 8.5,
+    status: "completed",
+  }
+];
